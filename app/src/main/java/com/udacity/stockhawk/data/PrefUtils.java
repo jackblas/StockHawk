@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import com.udacity.stockhawk.R;
+import com.udacity.stockhawk.sync.QuoteSyncJob;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -22,7 +23,6 @@ public final class PrefUtils {
 
         HashSet<String> defaultStocks = new HashSet<>(Arrays.asList(defaultStocksList));
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-
 
         boolean initialized = prefs.getBoolean(initializedKey, false);
 
@@ -86,6 +86,36 @@ public final class PrefUtils {
         }
 
         editor.apply();
+    }
+
+    //JB-Issue 05: Handle invalid stock symbol.
+    public static int getStockSymbolStatus(Context c){
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
+            return sp.getInt(c.getString(R.string.pref_added_stock_status_key), QuoteSyncJob.STATUS_STOCK_SYMBOL_VALID);
+        }
+
+    //JB-Issue 05: Handle invalid stock symbol.
+    public static void setStockSymbolStatus(Context c, int stockSymbolStatus){
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
+        SharedPreferences.Editor spe = sp.edit();
+        spe.putInt(c.getString(R.string.pref_added_stock_status_key), stockSymbolStatus);
+        //spe.commit();
+        spe.apply();
+    }
+    //JB-Issue 06: Connection and server status messages.
+    public static int getServerStatus(Context c){
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
+        return sp.getInt(c.getString(R.string.pref_server_status_key), QuoteSyncJob.STATUS_SERVER_OK);
+    }
+
+    //JB-Issue 06: Connection and server status messages.
+    public static void setServerStatus(Context c, int status){
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
+        SharedPreferences.Editor spe = sp.edit();
+        spe.putInt(c.getString(R.string.pref_server_status_key), status);
+        //spe.commit();
+        spe.apply();
     }
 
 }

@@ -1,35 +1,62 @@
-<resources>
-    <string name="app_name">Stock Hawk</string>
+<resources xmlns:xliff="http://schemas.android.com/apk/res-auto">
+    <!-- App name -->
+    <!-- JB: Product names are usually non-translatable -->
+    <string name="app_name" translatable="false">Stock Hawk</string>
 
+    <!-- Shared Preferences keys -->
     <string name="pref_stocks_initialized_key" translatable="false">initialized</string>
+    <string name="pref_added_stock_status_key" translatable="false">stock-status</string>
+    <string name="pref_server_status_key" translatable="false">server-status</string>
 
     <string name="pref_stocks_key">stocks</string>
 
+    <string name="pref_display_mode_key" translatable="false">displayMode</string>
+    <string name="pref_display_mode_default" translatable="false">@string/pref_display_mode_percentage_key</string>
 
-    <string name="pref_display_mode_key">displayMode</string>
-    <string name="pref_display_mode_default">@string/pref_display_mode_percentage_key</string>
+    <string name="pref_display_mode_absolute_key" translatable="false">absolute</string>
+    <string name="pref_display_mode_percentage_key" translatable="false">percentage</string>
 
-    <string name="pref_display_mode_absolute_key">absolute</string>
-    <string name="pref_display_mode_percentage_key">percentage</string>
-
+    <!-- Default stocks symbols -->
     <string name="default_stocks_yahoo">YHOO</string>
     <string name="default_stocks_apple">AAPL</string>
     <string name="default_stocks_microsoft">MSFT</string>
     <string name="default_stocks_facebook">FB</string>
 
+    <!-- Actions -->
+    <string name="action_change_units" translatable="false">@string/pref_display_mode_key</string>
 
-    <string name="action_change_units">@string/pref_display_mode_key</string>
-
-
+    <!-- Dialogs strings -->
     <string name="dialog_title">Add Stock</string>
     <string name="dialog_hint">Symbol (e.g. GOOG)</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="dialog_add">Add</string>
 
-    <string name="error_no_network">No network connectivity! Will load stock cursor when the network is available.</string>
+    <!-- Error and feedback messages -->
+    <string name="error_no_network">No network connectivity! Will load stock data when the network is available.</string>
     <string name="error_no_stocks">No stocks added! Hit the floating action button to add one.</string>
+    <string name="error_server_down">No stock information available. The server is not returning data.</string>
 
-    <string name="toast_stock_added_no_connectivity">Symbol %s added. Will refresh when network available.</string>
-    <string name="toast_no_connectivity">Will refresh when network available.</string>
+    <!-- Toast and Snackbar messages -->
+    <string name="message_server_down">Stock information out of date. The server is not returning data.</string>
+    <string name="message_invalid_stock_symbol">You entered an invalid stock symbol.</string>
+    <string name="toast_stock_added_no_connectivity">Symbol <xliff:g id="stock_symbol">%s</xliff:g> added. Will refresh when network available.</string>
+    <string name="toast_no_connectivity">No network connectivity! Will refresh when network available.</string>
+    
+    <!-- Content description strings -->
+    <string name="add_stock">Add new stock</string>
+    <string name="change_units">Change units</string>
+
+    <!-- Widget strings -->
+    <string name="title_widget_my_stock">My Stock</string>
+    <string name="title_widget_stock_list">My Stock List</string>
+
+    <string name="empty_stock_list">No stock information available</string>
+
+    <!-- Details Activity -->
+    <string name="symbol_string">(%1s)</string>
+    <string name="range_string">52 Week Range %1$s - %2$s</string>
+    <!-- Graph strings -->
+    <string name="dataset_label">Price in $</string>
+    <string name="chart_description">Weekly price change - Last 2 years</string>
 
 </resources>

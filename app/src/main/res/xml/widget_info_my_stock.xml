@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:initialLayout="@layout/widget_my_stock"
+    android:minHeight="@dimen/widget_my_stock_default_height"
+    android:minWidth="@dimen/widget_my_stock_default_width"
+    android:updatePeriodMillis="0"
+    android:previewImage="@drawable/my_stock_ori"/>
+

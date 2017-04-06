@@ -14,7 +14,7 @@ class DbHelper extends SQLiteOpenHelper {
     private static final int VERSION = 1;
 
 
-    DbHelper(Context context) {
+    public DbHelper(Context context) {
         super(context, NAME, null, VERSION);
     }
 
@@ -27,6 +27,7 @@ class DbHelper extends SQLiteOpenHelper {
                 + Quote.COLUMN_ABSOLUTE_CHANGE + " REAL NOT NULL, "
                 + Quote.COLUMN_PERCENTAGE_CHANGE + " REAL NOT NULL, "
                 + Quote.COLUMN_HISTORY + " TEXT NOT NULL, "
+                + Quote.COLUMN_NAME + " TEXT NOT NULL, "
                 + "UNIQUE (" + Quote.COLUMN_SYMBOL + ") ON CONFLICT REPLACE);";
 
         db.execSQL(builder);

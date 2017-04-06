@@ -1,10 +1,16 @@
 package com.udacity.stockhawk.ui;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -13,7 +19,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,9 +34,12 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import timber.log.Timber;
 
+import static com.udacity.stockhawk.sync.QuoteSyncJob.ACTION_DATA_UPDATED;
+
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
         SwipeRefreshLayout.OnRefreshListener,
-        StockAdapter.StockAdapterOnClickHandler {
+        StockAdapter.StockAdapterOnClickHandler,
+        SharedPreferences.OnSharedPreferenceChangeListener{
 
     private static final int STOCK_LOADER = 0;
     @SuppressWarnings("WeakerAccess")
@@ -43,16 +51,23 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @SuppressWarnings("WeakerAccess")
     @BindView(R.id.error)
     TextView error;
+    @SuppressWarnings("WeakerAccess")
+    @BindView(R.id.mainCoordinatorLayout)
+    CoordinatorLayout mainCoordinatorLayout;
     private StockAdapter adapter;
 
     @Override
     public void onClick(String symbol) {
+
         Timber.d("Symbol clicked: %s", symbol);
+
+        Uri stockSymbolUri = Contract.Quote.makeUriForStock(symbol);
+        Intent intent = new Intent(this,DetailsActivity.class).setData(stockSymbolUri);
+        startActivity(intent);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d("JACK","onCreate()");
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
@@ -63,10 +78,26 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         stockRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         swipeRefreshLayout.setOnRefreshListener(this);
-        swipeRefreshLayout.setRefreshing(true);
-        onRefresh();
 
-        QuoteSyncJob.initialize(this);
+        // JB change - Call QuoteSyncJob.initialize before onRefresh()
+        // Do not execute on rotation.
+        if(savedInstanceState ==  null){
+
+            QuoteSyncJob.initialize(this);
+
+            //JB- Fix to show the load indicator when
+            //RecyclerView is empty (from stackoverflow.com)
+            //swipeRefreshLayout.setRefreshing(true);
+            swipeRefreshLayout.post(new Runnable() {
+                @Override public void run() {
+                    swipeRefreshLayout.setRefreshing(true);
+                }
+            });
+
+            onRefresh();
+
+        }
+
         getSupportLoaderManager().initLoader(STOCK_LOADER, null, this);
 
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
@@ -80,6 +111,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 String symbol = adapter.getSymbolAtPosition(viewHolder.getAdapterPosition());
                 PrefUtils.removeStock(MainActivity.this, symbol);
                 getContentResolver().delete(Contract.Quote.makeUriForStock(symbol), null, null);
+                //JB for widget update
+                Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED);
+                getApplicationContext().sendBroadcast(dataUpdatedIntent);
             }
         }).attachToRecyclerView(stockRecyclerView);
 
@@ -95,29 +129,94 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onRefresh() {
-        Log.d("JACK","onRefresh()");
 
         QuoteSyncJob.syncImmediately(this);
 
+        checkServerStatusOnRefresh();
+
+    }
+
+    //JB-Issue 06: No connection and server down messages
+    //Executed every time onRefresh() runs
+    private void checkServerStatusOnRefresh() {
+
+        int serverStatus = PrefUtils.getServerStatus(getApplicationContext());
+
         if (!networkUp() && adapter.getItemCount() == 0) {
-            Log.d("JACK","onRefresh()-100");
-            Log.d("JACK","adapter.getItemCount() " + adapter.getItemCount());
+
             swipeRefreshLayout.setRefreshing(false);
             error.setText(getString(R.string.error_no_network));
             error.setVisibility(View.VISIBLE);
         } else if (!networkUp()) {
-            Log.d("JACK","onRefresh()-200");
+
             swipeRefreshLayout.setRefreshing(false);
+            //Update percent change pill style
+            adapter.notifyDataSetChanged();
             Toast.makeText(this, R.string.toast_no_connectivity, Toast.LENGTH_LONG).show();
+
+
+        } else if(serverStatus == QuoteSyncJob.STATUS_SERVER_DOWN && adapter.getItemCount() == 0) {
+
+            swipeRefreshLayout.setRefreshing(false);
+            error.setText(getString(R.string.error_server_down));
+            error.setVisibility(View.VISIBLE);
+        } else if (serverStatus == QuoteSyncJob.STATUS_SERVER_DOWN) {
+
+            swipeRefreshLayout.setRefreshing(false);
+            adapter.notifyDataSetChanged();
+            Toast.makeText(this, R.string.message_server_down, Toast.LENGTH_LONG).show();
+
         } else if (PrefUtils.getStocks(this).size() == 0) {
-            Log.d("JACK","onRefresh()-300");
+
             swipeRefreshLayout.setRefreshing(false);
             error.setText(getString(R.string.error_no_stocks));
             error.setVisibility(View.VISIBLE);
+
+
         } else {
-            Log.d("JACK","onRefresh()-400");
+
+            //swipeRefreshLayout.setRefreshing(false);
             error.setVisibility(View.GONE);
         }
+
+    }
+
+    // JB-Issue 06: No connection and server down messages
+    // Executed only if status changes
+    // Why two 'check status' methods: When sync job runs in background, we
+    // want to show messages only when status changes. When server is down,
+    // we don't want to display messages every time sync fails.
+    private void checkServerStatusOnPrefChanged(){
+
+        int serverStatus = PrefUtils.getServerStatus(getApplicationContext());
+
+        if (!networkUp()) {
+            //Update percent change pill style
+            adapter.notifyDataSetChanged();
+
+        } else if(serverStatus == QuoteSyncJob.STATUS_SERVER_DOWN && adapter.getItemCount() == 0) {
+
+            swipeRefreshLayout.setRefreshing(false);
+            error.setText(getString(R.string.error_server_down));
+            error.setVisibility(View.VISIBLE);
+        } else if (serverStatus == QuoteSyncJob.STATUS_SERVER_DOWN) {
+
+            swipeRefreshLayout.setRefreshing(false);
+            adapter.notifyDataSetChanged();
+            Toast.makeText(this, R.string.message_server_down, Toast.LENGTH_LONG).show();
+
+        } else if (PrefUtils.getStocks(this).size() == 0) {
+
+            swipeRefreshLayout.setRefreshing(false);
+            error.setText(getString(R.string.error_no_stocks));
+            error.setVisibility(View.VISIBLE);
+
+        } else {
+
+            //swipeRefreshLayout.setRefreshing(false);
+            error.setVisibility(View.GONE);
+        }
+
     }
 
     public void button(@SuppressWarnings("UnusedParameters") View view) {
@@ -149,18 +248,26 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.d("JACK","onLoadFinished()");
         swipeRefreshLayout.setRefreshing(false);
 
         if (data.getCount() != 0) {
+
             error.setVisibility(View.GONE);
         }
         adapter.setCursor(data);
+        //JB-Issue 05: Handle invalid stock symbol - Check stock symbol status:
+        int status = PrefUtils.getStockSymbolStatus(getApplicationContext());
+        if (status == QuoteSyncJob.STATUS_STOCK_SYMBOL_INVALID){
+            Snackbar.make(mainCoordinatorLayout,R.string.message_invalid_stock_symbol, Snackbar.LENGTH_LONG).show();
+            PrefUtils.setStockSymbolStatus(getApplicationContext(),QuoteSyncJob.STATUS_STOCK_SYMBOL_VALID);
+        }
+
     }
 
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+
         swipeRefreshLayout.setRefreshing(false);
         adapter.setCursor(null);
     }
@@ -191,8 +298,38 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             PrefUtils.toggleDisplayMode(this);
             setDisplayModeMenuItemIcon(item);
             adapter.notifyDataSetChanged();
+            //JB for widget update
+            Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED);
+            getApplicationContext().sendBroadcast(dataUpdatedIntent);
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    protected void onResume() {
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        sp.registerOnSharedPreferenceChangeListener(this);
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        sp.unregisterOnSharedPreferenceChangeListener(this);
+        super.onPause();
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+
+        if ( key.equals(getString(R.string.pref_server_status_key)) ) {
+
+            checkServerStatusOnPrefChanged();
+        }
+
+    }
+
 }

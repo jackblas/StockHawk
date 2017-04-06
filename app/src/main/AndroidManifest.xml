@@ -22,6 +22,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ui.DetailsActivity"
+            android:parentActivityName=".ui.MainActivity"/>
 
         <service
             android:name=".sync.QuoteIntentService"
@@ -37,6 +39,34 @@
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
-    </application>
 
+        <!-- My Stock Widget -->
+        <receiver
+            android:name=".widget.MyStockWidgetProvider"
+            android:label="@string/title_widget_my_stock" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.udacity.stockhawk.ACTION_DATA_UPDATED"/>
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_my_stock" />
+        </receiver>
+        <service android:name=".widget.MyStockWidgetIntentService"/>
+
+        <!-- Stock List Widget -->
+        <receiver
+            android:name=".widget.StockListWidgetProvider"
+            android:label="@string/title_widget_stock_list">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.udacity.stockhawk.ACTION_DATA_UPDATED" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_stock_list" />
+        </receiver>
+        <service
+               android:name=".widget.StockListWidgetRemoteViewsService"
+               android:exported="false"
+               android:permission="android.permission.BIND_REMOTEVIEWS" />
+    </application>
 </manifest>

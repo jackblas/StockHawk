@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="@dimen/widget_margin">
+
+    <LinearLayout
+        android:id="@+id/widget"
+        android:background="?android:colorBackground"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+         >
+
+        <TextView
+            android:id="@+id/widget_symbol"
+            style="@style/SymbolWidgetTextStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            tools:text="GOOG" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="bottom"
+            android:layout_margin="8dp">
+
+            <TextView
+                android:id="@+id/widget_price"
+                style="@style/PriceWidgetTextStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="1000.00" />
+
+            <TextView
+                android:id="@+id/widget_change"
+                style="@style/ChangeWidgetTextStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/percent_change_pill_green"
+                android:paddingStart="3dp"
+                android:paddingEnd="3dp"
+                tools:text="100%" />
+        </LinearLayout>
+
+    </LinearLayout>
+</FrameLayout>
