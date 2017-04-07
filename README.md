@@ -6,6 +6,53 @@ Check out Udacity's [Advanced Android App Development](https://www.udacity.com/c
 
 If you're a Nanodegree student check your work againt the project [rubric](https://review.udacity.com/#!/rubrics/140/view), then click [here](https://classroom.udacity.com/nanodegrees/nd801/parts/8011345406/project) to submit your project.
 
-# Contrubuting
+# Jack B Changes (Udacity Nanodegree Project)
 
-Pull requests gratefully accepted.
+PROJECT SPECIFICATIONS
+
+
+### Each stock quote on the main screen is clickable and leads to a new screen which graphs the stock's value over time.
+
+•	Added Details Activity with a graph
+
+•	Added company name and 52 weeks range to details
+
+
+
+### Stock Hawk does not crash when a user searches for a non-existent stock.
+
+•	Modified QuteSyncJob class to handle invalid symbol.
+
+
+
+### Stock Hawk Stocks can be displayed in a collection widget.
+
+•	Added collection widget (big) and one stock widget(small)
+
+
+
+### Stock Hawk app has content descriptions for all buttons.
+
+•	Added Description attribute to buttons.
+
+### Stock Hawk app supports layout mirroring using both the RTL attribute and the start/end tags.
+
+•	Added start/end tags to padding and margins
+
+
+
+### Strings are all included in the strings.xml file and untranslatable strings have a translatable tag marked to false.
+
+•	Added translatable="false” attribute where required
+
+•	Used a xliff:g tag to mark text that should not be translated
+
+
+
+### Other changes:
+
+•	Added currency and number formatting based on locale
+
+•	Added a fix to show the load indicator when RecyclerView is empty
+
+•	Expanded server and connection status check triggered by onRefresh() and the sync job
