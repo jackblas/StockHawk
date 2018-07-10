@@ -9,6 +9,11 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import com.udacity.stockhawk.alphavantage.AlphaVantage;
+import com.udacity.stockhawk.alphavantage.HistoricalQuote;
+import com.udacity.stockhawk.alphavantage.Interval;
+import com.udacity.stockhawk.alphavantage.Stock;
+import com.udacity.stockhawk.alphavantage.StockQuote;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
 
@@ -23,11 +28,6 @@ import java.util.Map;
 import java.util.Set;
 
 import timber.log.Timber;
-import yahoofinance.Stock;
-import yahoofinance.YahooFinance;
-import yahoofinance.histquotes.HistoricalQuote;
-import yahoofinance.histquotes.Interval;
-import yahoofinance.quotes.stock.StockQuote;
 
 
 public final class QuoteSyncJob {
@@ -39,7 +39,7 @@ public final class QuoteSyncJob {
     //private static final int PERIOD = 60000;
     private static final int INITIAL_BACKOFF = 10000;
     private static final int PERIODIC_ID = 1;
-    private static final int YEARS_OF_HISTORY = 2;
+    private static final int YEARS_OF_HISTORY = 1;
 
     public static final int STATUS_STOCK_SYMBOL_VALID = 0;
     public static final int STATUS_STOCK_SYMBOL_INVALID = 1;
@@ -73,7 +73,10 @@ public final class QuoteSyncJob {
                 return;
             }
 
-            Map<String, Stock> quotes = YahooFinance.get(stockArray);
+            // API change:
+            //Map<String, Stock> quotes = YahooFinance.get(stockArray);
+            Map<String, Stock> quotes = AlphaVantage.get(stockArray, context);
+
             Iterator<String> iterator = stockCopy.iterator();
 
             Timber.d(quotes.toString());
@@ -149,6 +152,7 @@ public final class QuoteSyncJob {
             context.sendBroadcast(dataUpdatedIntent);
 
             PrefUtils.setServerStatus(context,STATUS_SERVER_OK);
+
 
         } catch (IOException exception) {
             Timber.e(exception, "Error fetching stock quotes");

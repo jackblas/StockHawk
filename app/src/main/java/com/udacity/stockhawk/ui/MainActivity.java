@@ -25,6 +25,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.udacity.stockhawk.BuildConfig;
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
@@ -220,7 +221,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     public void button(@SuppressWarnings("UnusedParameters") View view) {
-        new AddStockDialog().show(getFragmentManager(), "StockDialogFragment");
+
+        if(BuildConfig.AV_API_KEY.equals("demo")) {
+            Toast.makeText(this, R.string.toast_functionality_not_available, Toast.LENGTH_LONG).show();
+        } else {
+            new AddStockDialog().show(getFragmentManager(), "StockDialogFragment");
+        }
+
     }
 
     void addStock(String symbol) {
